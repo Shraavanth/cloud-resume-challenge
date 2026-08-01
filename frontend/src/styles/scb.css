@@ -1,0 +1,515 @@
+/*
+ * SCB Design System – React Platform
+ * Adopts ServiceBench WebKit / GDS (Group Design System)
+ *
+ * GDS token files loaded in order:
+ * 1. gds-base.css           -- radius, screens, font-family, transitions
+ * 2. gds-palette.css        -- full --sc-color-* token set
+ * 3. gds-components-light.css -- light-mode component tokens (tabs, panels..)
+ * 4. gds-nav-light.css      -- left-nav tokens
+ *
+ * Primary blue : var(--sc-color-blue-500) = #0473EA
+ * Deep navy   : var(--sc-color-blue-900) = #00172E
+ * Grey border : var(--sc-color-grey-150) = #D9D9D9
+ * Page bg     : var(--sc-color-grey-50) = #F2F2F2
+ */
+
+/* GDS token layers (ServiceBench WebKit design system) — */
+@import './gds-base.css';
+@import './gds-palette.css';
+@import './gds-components-light.css';
+@import './gds-nav-light.css';
+
+/* — INTER — GDS secondary typeface (loaded from Google Fonts) — */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* — SC PROSPER SANS — SCB brand typeface (local install) — */
+@font-face {
+  font-family: 'SC Prosper Sans';
+  font-weight: 300; font-style: normal;
+  src: local('SC Prosper Sans Light'), local('SCProsperSans-Light'),
+       local('Prosper Sans Light');
+}
+@font-face {
+  font-family: 'SC Prosper Sans';
+  font-weight: 400; font-style: normal;
+  src: local('SC Prosper Sans'), local('SCProsperSans-Regular'),
+       local('Prosper Sans');
+}
+@font-face {
+  font-family: 'SC Prosper Sans';
+  font-weight: 500; font-style: normal;
+  src: local('SC Prosper Sans Medium'), local('SCProsperSans-Medium'),
+       local('Prosper Sans Medium');
+}
+@font-face {
+  font-family: "SC Prosper Sans";
+  font-weight: 600; font-style: normal;
+  src: local("SC Prosper Sans SemiBold"), local("SCProsperSans-SemiBold"),
+       local("Prosper Sans SemiBold");
+}
+@font-face {
+  font-family: "SC Prosper Sans";
+  font-weight: 700; font-style: normal;
+  src: local("SC Prosper Sans Bold"), local("SCProsperSans-Bold"),
+       local("Prosper Sans Bold");
+}
+
+:root {
+  /* Typography — SC Prosper Sans (SCB brand) with Inter as a clean fallback */
+  --scb-font: var(--sc-font-family, "SC Prosper Sans"), Inter, -apple-system,
+      BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Colours — reference official GDS — --sc-color-* tokens (from gds-palette.css) */
+  --scb-bg: var(--sc-color-grey-50, #F2F2F2); /* page background */
+  --scb-bg2: var(--sc-color-white, #FFFFFF); /* card / panel bg */
+  --scb-bg3: var(--sc-color-grey-100, #E5E5E5); /* card / panel bg */
+  --scb-border: var(--sc-color-grey-150, #D9D9D9); /* default border */
+  --scb-text: var(--sc-color-blue-900, #00172E); /* body text */
+  --scb-muted: var(--sc-color-grey-650, #595959); /* secondary text */
+  --scb-dim: var(--sc-color-grey-500, #808080); /* metadata */
+  --scb-accent: var(--sc-color-blue-500, #0473EA); /* primary action */
+  --scb-navy: var(--sc-color-blue-900, #00172E); /* dark navy */
+  --scb-orange: var(--sc-color-amber-500, #FAA41D);
+  --scb-red: var(--sc-color-red-500, #E00A15);
+  --scb-teal: var(--sc-color-teal-500, #1AD3E5);
+  --scb-radius: var(--sc-radius-sm, 6px);
+}
+
+/* DEBT-5: dark mode — override colour tokens when html[data-dark] is set */
+html[data-dark] {
+  --scb-bg: #0D1117;
+  --scb-bg2: #161B22;
+  --scb-bg3: #21262D;
+  --scb-border: #30363D;
+  --scb-text: #E6EDF3;
+  --scb-muted: #8B949E;
+  --scb-dim: #484F58;
+  --scb-accent: #58A6FF;
+  --scb-navy: #C9D1D9;
+  --scb-orange: #E3B341;
+  --scb-red: #F85149;
+  --scb-teal: #39D3F0;
+}
+
+/* DEBT-6: color token consistency -- ensure Ant Design overrides also respect dark mode */
+html[data-dark] body,
+html[data-dark] .ant-layout,
+html[data-dark] .ant-layout-content { background: var(--scb-bg) !important; color: var(--scb-text) !important; }
+html[data-dark] .ant-card,
+html[data-dark] .scb-panel,
+html[data-dark] .scb-stat { background: var(--scb-bg2) !important; border-color: var(--scb-border) !important; }
+html[data-dark] .ant-card-head { border-bottom-color: var(--scb-border) !important; }
+html[data-dark] .ant-modal-content, html[data-dark] .ant-modal-mask { background: var(--scb-bg) !important; color: var(--scb-text) !important; }
+html[data-dark] .ant-table { background: var(--scb-bg2) !important; color: var(--scb-text) !important; }
+html[data-dark] .ant-table-thead > tr > th { background: var(--scb-bg3) !important; color: var(--scb-muted) !important; border-bottom-color: var(--scb-border) !important; text-align: left !important; }
+html[data-dark] .ant-table-tbody > tr > td { background: var(--scb-bg2) !important; color: var(--scb-text) !important; }
+html[data-dark] .ant-table-tbody > tr:hover > td { background: var(--scb-bg3) !important; color: var(--scb-text) !important; text-align: left !important; }
+html[data-dark] .ant-select-selector,
+html[data-dark] .ant-input { background: var(--scb-bg3) !important; border-color: var(--scb-border) !important; color: var(--scb-text) !important; }
+html[data-dark] .ant-drawer-content { background: var(--scb-bg2) !important; color: var(--scb-text) !important; }
+html[data-dark] .ant-dropdown-menu { background: var(--scb-bg2) !important; color: var(--scb-text) !important; }
+html[data-dark] .ant-spp-header { background: #161B22 !important; border-bottom-color: var(--scb-border) !important; }
+html[data-dark] .scb-page-title { color: var(--scb-navy) !important; }
+
+/* DEBT-7: offline indicator style */
+.scb-online-dot--offline { background: #E53E3E !important; box-shadow: 0 0 0 2px rgba(229,62,62,0.25) !important; }
+
+/* --- BODY --- */
+body {
+  background: var(--scb-bg) !important;
+  font-family: var(--scb-font) !important;
+  color: var(--scb-text) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* — SCROLLBAR — */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scb-bg3); }
+::-webkit-scrollbar-thumb { background: #8B949E; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #909AA5; }
+
+/* scb-stat / scb-stats-row - defined in KPI section above (consolidated) */
+
+/* =================== */
+/* PAGE HEADER ROW */
+/* =================== */
+.scb-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.scb-page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--scb-navy);
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.scb-page-meta {
+  font-size: 12px;
+  color: var(--scb-dim);
+  margin-top: 3px;
+}
+
+/*
+ * PROJECT HERO STRIP (detail page top bar)
+ */
+.scb-project-hero {
+  background: var(--scb-navy);
+  border-radius: var(--scb-radius);
+  padding: 16px 24px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+  min-height: 110px;
+  position: relative;
+  overflow: hidden;
+}
+.scb-project-hero::before {
+  content: '';
+  position: absolute;
+  right: -60px; top: -60px;
+  width: 240px; height: 240px;
+  background: radial-gradient(circle, rgba(4,115,234,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.scb-project-hero-top {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  position: relative;
+  z-index: 1;
+}
+.scb-project-hero-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* — breadcrumb inside dark hero — */
+.pd-hero-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+.pd-hero-breadcrumb-link {
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pd-hero-breadcrumb-link:hover { color: rgba(255,255,255,0.82); }
+.pd-hero-breadcrumb-sep { color: rgba(255,255,255,0.25); }
+.pd-hero-breadcrumb-cur { color: rgba(255,255,255,0.75); font-weight: 500; }
+
+/* =================== */
+/* CLOUD HEADER / BRAND */
+/* =================== */
+.scb-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background-color: rgba(12, 26, 48, 0.92);
+  background-image:
+    radial-gradient(circle at 15% 25%, rgba(255,255,255,0.18), transparent 16%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.12), transparent 14%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 100'%3E%3Cpath fill='rgba(255,255,255,0.08)' d='M20 65c10-12 34-10 44-20 14-16 34-16 48-2 16-10 36-6 46 10 18-12 38-8 48 10 12 22 32 18 40 10'/%3E%3Cpath fill='rgba(255,255,255,0.06)' d='M10 55c8-10 28-8 36-18 12-18 30-18 42-4 12-6 28-4 36 6 14-8 30-4 38 8 10 18 28 14 36 8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: top left, top right, center;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: calc(var(--scb-radius) * 1.5);
+  box-shadow: 0 16px 32px rgba(0, 17, 34, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+
+.scb-topbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 55% 35%, rgba(255,255,255,0.12), transparent 28%);
+  pointer-events: none;
+}
+
+.scb-topbar > * {
+  position: relative;
+  z-index: 1;
+}
+
+.scb-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.scb-cloud-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(4,115,234,0.15), rgba(26,211,229,0.14));
+  color: var(--scb-accent);
+  font-size: 1.2rem;
+  box-shadow: 0 8px 18px rgba(4, 115, 234, 0.12);
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-main {
+  flex: 1;
+  background: linear-gradient(180deg, rgba(56,210,0,0.08), rgba(225,250,230,0.9));
+  padding: 1.25rem;
+}
+
+.admin-header {
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--sc-color-green-50, #EBFBE6);
+  border: 1px solid var(--sc-color-green-200, #AFEF9B);
+  border-radius: calc(var(--scb-radius) * 1.5);
+}
+
+.admin-content {
+  padding: 0.5rem 0;
+}
+
+/* — prev/next nav arrows in hero breadcrumb — */
+.pd-nav-arrows {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+}
+.pd-nav-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-size: 11px;
+}
+.pd-nav-arrow:hover { background: rgba(255,255,255,0.25); color: #fff; }
+.pd-nav-arrow--disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+/* — decorative watermark initial — */
+.pd-hero-watermark {
+  position: absolute;
+  right: 24px;
+  bottom: -12px;
+  font-size: 108px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.045);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -4px;
+  z-index: 0;
+}
+
+/* — badge row — sits above action buttons — */
+.pd-hero-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+/* — overdue date in meta text — */
+.pd-hero-meta-overdue { color: #FCA5A5; font-weight: 600; }
+.scb-project-hero-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.scb-project-hero-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scb-project-hero-meta {
+  font-size: 12px;
+  color: rgba(255,255,255,0.58);
+  margin-top: 4px;
+  font-weight: 300;
+}
+
+/* App-specific helpers */
+.scb-layout {
+  position: relative;
+  min-height: 100vh;
+  background: radial-gradient(circle at top center, rgba(83, 176, 255, 0.22), transparent 28%),
+              radial-gradient(circle at 20% 15%, rgba(78, 161, 255, 0.16), transparent 22%),
+              linear-gradient(180deg, #132B52 0%, #0F203F 48%, #091522 100%);
+  color: var(--scb-text);
+  overflow: hidden;
+}
+
+.scb-layout::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(255,255,255,0.20), transparent 20%),
+    radial-gradient(circle at 85% 20%, rgba(255,255,255,0.15), transparent 18%),
+    radial-gradient(circle at 50% 75%, rgba(255,255,255,0.12), transparent 20%);
+}
+
+.scb-page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(10px);
+}
+
+.scb-main {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.scb-page-section {
+  padding: 18px 0;
+}
+
+.scb-panel {
+  background: var(--scb-bg2);
+  border: 1px solid var(--scb-border);
+  border-radius: var(--scb-radius);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.scb-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.scb-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.scb-nav-link {
+  color: var(--scb-text);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.scb-nav-link:hover {
+  color: var(--scb-accent);
+}
+
+.scb-form {
+  display: grid;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.scb-input,
+.scb-textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--scb-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--scb-bg3);
+  color: var(--scb-text);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.scb-input:focus,
+.scb-textarea:focus {
+  outline: 2px solid var(--scb-accent);
+  outline-offset: 2px;
+}
+
+.scb-textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.scb-link {
+  color: var(--scb-accent);
+  text-decoration: none;
+}
+
+.scb-link:hover {
+  text-decoration: underline;
+}
+
+.btn,
+.scb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: calc(var(--scb-radius) * 1.1);
+  border: 1px solid transparent;
+  background: var(--scb-accent);
+  color: var(--scb-bg2);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.btn:hover,
+.scb-btn:hover {
+  background: var(--sc-color-blue-600);
+}
+
+.card {
+  background: var(--scb-bg2);
+  border: 1px solid var(--scb-border);
+  border-radius: var(--scb-radius);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.scb-card-list > * + * {
+  margin-top: 16px;
+}

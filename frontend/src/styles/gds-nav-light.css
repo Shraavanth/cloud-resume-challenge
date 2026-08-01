@@ -1,0 +1,42 @@
+/* Dark mode component definition */
+:host,
+.sc-mode-light {
+  --sb-left-navigation-background-color: var(--sc-color-white);
+  --sb-left-navigation-title-color: var(--sc-color-blue-500);
+  --sb-left-navigation-divider-color: var(--sc-color-grey-150);
+  --sb-left-navigation-icon-round-background-color: var(--sc-color-grey-50);
+  --sb-left-navigation-active-text-color: var(--sc-color-blue-500);
+  --sb-left-navigation-active-background-color: var(--sc-color-blue-50);
+  --sb-left-navigation-group-active-background-color: var(--palette-grey-grey-200, #EDEDEF);
+  --sb-left-navigation-group-container-background-color-blur: rgba(255, 255, 255, 0.70);
+  --sb-left-navigation-group-container-background-image-blur: linear-gradient(to top, #ffffff, #ffffff00 90%);
+  --sb-left-navigation-group-container-compact-background-color-blur: var(--sc-color-white);
+  --sb-left-navigation-group-container-border-color-blur: rgba(255, 255, 255, 0.30);
+  --sb-left-navigation-group-container-color: var(--sc-color-blue-900);
+  --sb-left-navigation-avatar-background-color: var(--sc-color-blue-900);
+  --sb-left-navigation-collapse-background-color: var(--sc-color-white);
+  --sb-left-navigation-collapse-text-color: var(--sc-color-grey-850);
+  --sb-left-navigation-action-hover-text-color: var(--sc-color-blue-500);
+  --sb-plugin-header-background-color: var(--sc-color-white);
+  --sb-plugin-header-title-color: var(--sc-color-blue-500);
+  --sb-main-background-color: var(--sc-color-white);
+  --sb-layer-background-color: var(--sc-color-white);
+  --sb-popup-layer-background-color: var(--sc-color-grey-50);
+  --sb-banner-background-color: var(--sc-color-blue-50);
+  --sb-page-layout-background-color: var(--sc-color-white);
+  --sb-store-plugin-card-large-bg-color: var(--sc-color-white);
+  --sb-store-plugin-card-default-icon-color: var(--sc-color-blue-900, #00172E);
+  --sb-store-plugin-card-description-color: var(--sc-color-grey-650, #595959);
+  --sb-store-plugin-card-category-color: var(--sc-color-grey-700, #404040);
+  --sb-store-common-title-color: var(--sc-color-blue-900, #00172E);
+  --sb-store-common-description-color: var(--sc-color-blue-900, #00172E);
+  --sb-store-tab-border-color: var(--sc-color-grey-150);
+  --sb-search-popup-overlay: rgba(255, 255, 255, 0.2);
+  --sb-search-popup-input-border-color: var(--sc-color-grey-300);
+  --sb-search-popup-background: rgba(255, 255, 255, 0.8);
+  --sb-search-popup-button-background: rgba(255, 255, 255, 0.96);
+  --sb-search-popup-border-image: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 54.52%);
+  --sb-search-popup-border-color: var(--sc-color-white);
+  --sb-search-popup-text-color: var(--sc-color-blue-900);
+  --sb-search-popup-tip-color: var(--sc-color-grey-650);
+}
