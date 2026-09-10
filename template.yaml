@@ -1,0 +1,357 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Cloud Portfolio Management System - Backend Serverless Stack
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: nodejs20.x
+    CodeUri: .
+    Environment:
+      Variables:
+        PROJECTS_TABLE: !Ref ProjectsTable
+        SKILLS_TABLE: !Ref SkillsTable
+        CERTS_TABLE: !Ref CertificationsTable
+        CONTACTS_TABLE: !Ref ContactsTable
+        RATINGS_TABLE: !Ref RatingsTable
+        ANALYTICS_TABLE: !Ref AnalyticsTable
+        RESUME_BUCKET: !Ref ResumeBucket
+        VERIFIED_SENDER_EMAIL: "admin@example.com" # Replace with your SES verified email
+
+Resources:
+  # ==========================================
+  # API GATEWAY & COGNITO AUTH
+  # ==========================================
+  PortfolioApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+        AllowOrigins:
+          - "*"
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${AdminUserPool}"
+              audience:
+                - !Ref AdminUserPoolClient
+
+  AdminUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: PortfolioAdminUserPool
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+
+  AdminUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: PortfolioAdminClient
+      UserPoolId: !Ref AdminUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+  # ==========================================
+  # DYNAMODB TABLES
+  # ==========================================
+  ProjectsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Projects
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: projectId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: projectId
+          KeyType: HASH
+
+  SkillsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Skills
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: skillId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: skillId
+          KeyType: HASH
+
+  CertificationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Certifications
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: certId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: certId
+          KeyType: HASH
+
+  ContactsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Contacts
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: contactId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: contactId
+          KeyType: HASH
+
+  RatingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PortfolioRatings
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: ratingId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ratingId
+          KeyType: HASH
+
+  AnalyticsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: VisitorAnalytics
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: siteId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: siteId
+          KeyType: HASH
+
+  # ==========================================
+  # S3 STORAGE
+  # ==========================================
+  ResumeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "portfolio-resumes-${AWS::AccountId}"
+
+  # ==========================================
+  # LAMBDA FUNCTIONS
+  # ==========================================
+  ProjectsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/projects.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectsTable
+      Events:
+        GetProjects:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /projects
+            Method: GET
+        CreateProject:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /projects
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        DeleteProject:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /projects/{id}
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  SkillsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/skills.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SkillsTable
+      Events:
+        GetSkills:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /skills
+            Method: GET
+        CreateSkill:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /skills
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        DeleteSkill:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /skills/{id}
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  CertificationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/certifications.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CertificationsTable
+      Events:
+        GetCerts:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /certifications
+            Method: GET
+        CreateCert:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /certifications
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        DeleteCert:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /certifications/{id}
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  ResumeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/resume.handler
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Sub "portfolio-resumes-${AWS::AccountId}"
+      Events:
+        GetDownloadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /resume/download
+            Method: GET
+        GetUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /resume/upload
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  StatsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/stats.handler
+      Events:
+        GetGitHubStats:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /stats/github
+            Method: GET
+        GetLeetCodeStats:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /stats/leetcode
+            Method: GET
+
+  ContactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/contact.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ContactsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Events:
+        SubmitContact:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /contact
+            Method: POST
+
+  AnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/analytics.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AnalyticsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RatingsTable
+      Events:
+        PostVisitor:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /visitor
+            Method: POST
+        GetVisitor:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /visitor
+            Method: GET
+        PostRating:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /rating
+            Method: POST
+        GetRating:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /rating
+            Method: GET
+
+# ==========================================
+# OUTPUTS FOR FRONTEND & DEVOPS
+# ==========================================
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL for API Gateway (Hand over to Member 1)
+    Value: !Sub "https://${PortfolioApi}.execute-api.${AWS::Region}.amazonaws.com"
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref AdminUserPool
+  UserPoolClientId:
+    Description: Cognito App Client ID
+    Value: !Ref AdminUserPoolClient
