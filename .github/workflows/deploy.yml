@@ -72,18 +72,27 @@ jobs:
           npm --prefix frontend run build
 
       - name: Setup Pages
+        id: setup_pages
         uses: actions/configure-pages@v5
+        continue-on-error: true
         with:
           enablement: true
 
       - name: Upload Pages Artifact
+        if: steps.setup_pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/dist
 
       - name: Deploy to GitHub Pages
+        if: steps.setup_pages.outcome == 'success'
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Notice on GitHub Pages Setup
+        if: steps.setup_pages.outcome != 'success'
+        run: |
+          echo "::notice title=Enable GitHub Pages in Settings::To activate your $0 free portfolio website, go to Settings -> Pages -> Source and select 'GitHub Actions'."
 
   deploy-aws:
     name: Deploy to AWS ($0 Free Tier Backend)
