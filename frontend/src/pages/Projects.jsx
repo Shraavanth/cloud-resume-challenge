@@ -4,9 +4,21 @@ import ProjectCard from "../components/ProjectCard";
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    getProjects().then(res => setProjects(res.data));
+    getProjects()
+      .then((res) => {
+        const items = res.data?.projects || (Array.isArray(res.data) ? res.data : []);
+        setProjects(items);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load projects:", err);
+        setError("Failed to load projects. Please try again later.");
+        setLoading(false);
+      });
   }, []);
 
   return (
@@ -29,12 +41,16 @@ export default function Projects() {
           <h2 className="scb-page-title">Project list</h2>
         </div>
 
-        {projects.length === 0 ? (
+        {loading ? (
           <p>Loading projects...</p>
+        ) : error ? (
+          <p className="text-red-400">{error}</p>
+        ) : projects.length === 0 ? (
+          <p>No projects found.</p>
         ) : (
           <div className="scb-card-list">
             {projects.map((p, i) => (
-              <ProjectCard key={i} project={p} />
+              <ProjectCard key={p.projectId || i} project={p} />
             ))}
           </div>
         )}

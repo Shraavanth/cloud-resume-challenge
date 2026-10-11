@@ -4,10 +4,20 @@ import { getVisitors, getProjects } from "../../services/api";
 export default function Dashboard() {
   const [visitors, setVisitors] = useState(0);
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getVisitors().then(res => setVisitors(res.data.total));
-    getProjects().then(res => setProjects(res.data));
+    Promise.allSettled([getVisitors(), getProjects()]).then(([visRes, projRes]) => {
+      if (visRes.status === "fulfilled") {
+        const count = visRes.value.data?.totalVisits ?? visRes.value.data?.total ?? 0;
+        setVisitors(count);
+      }
+      if (projRes.status === "fulfilled") {
+        const items = projRes.value.data?.projects || (Array.isArray(projRes.value.data) ? projRes.value.data : []);
+        setProjects(items);
+      }
+      setLoading(false);
+    });
   }, []);
 
   return (
@@ -20,16 +30,20 @@ export default function Dashboard() {
             <h1 className="scb-page-title">Dashboard</h1>
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="scb-panel">
-            <h3>Total Visitors</h3>
-            <p>{visitors}</p>
+        {loading ? (
+          <p>Loading dashboard metrics...</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="scb-panel">
+              <h3>Total Visitors</h3>
+              <p className="text-2xl font-bold text-blue-400">{visitors}</p>
+            </div>
+            <div className="scb-panel">
+              <h3>Total Projects</h3>
+              <p className="text-2xl font-bold text-green-400">{projects.length}</p>
+            </div>
           </div>
-          <div className="scb-panel">
-            <h3>Total Projects</h3>
-            <p>{projects.length}</p>
-          </div>
-        </div>
+        )}
       </section>
     </div>
   );

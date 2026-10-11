@@ -4,9 +4,19 @@ import SkillCard from "../components/SkillCard";
 
 export default function Home() {
   const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getSkills().then(res => setSkills(res.data));
+    getSkills()
+      .then((res) => {
+        const items = res.data?.skills || (Array.isArray(res.data) ? res.data : []);
+        setSkills(items);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load skills:", err);
+        setLoading(false);
+      });
   }, []);
 
   return (
@@ -34,12 +44,14 @@ export default function Home() {
           <h2 className="scb-page-title">Core Skills</h2>
         </div>
 
-        {skills.length === 0 ? (
+        {loading ? (
           <p>Loading skills...</p>
+        ) : skills.length === 0 ? (
+          <p>No skills listed yet.</p>
         ) : (
           <div className="scb-card-list">
             {skills.map((skill, index) => (
-              <SkillCard key={index} skill={skill} />
+              <SkillCard key={skill.skillId || index} skill={skill} />
             ))}
           </div>
         )}
