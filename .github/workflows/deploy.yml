@@ -10,6 +10,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
 jobs:
   test-and-build:
     name: Run Unit Tests & Build Frontend
@@ -44,8 +49,42 @@ jobs:
       - name: Validate SAM Template
         run: sam validate --lint
 
+  deploy-pages:
+    name: Deploy Frontend to GitHub Pages ($0 Budget Verified)
+    needs: test-and-build
+    if: github.ref == 'refs/heads/development/nikhil' || github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Frontend for Production
+        run: |
+          npm --prefix frontend ci
+          npm --prefix frontend run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
   deploy-aws:
-    name: Deploy to AWS ($0 Budget Free Tier)
+    name: Deploy to AWS ($0 Free Tier Backend)
     needs: test-and-build
     if: github.ref == 'refs/heads/development/nikhil' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -58,20 +97,28 @@ jobs:
         with:
           node-version: 20
 
-      - name: Check if AWS credentials exist
+      - name: Check for AWS Authentication (OIDC Role or Keys)
         id: check-aws
         env:
+          AWS_ROLE: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
         run: |
-          if [ -n "$AWS_KEY" ]; then
-            echo "has_creds=true" >> $GITHUB_OUTPUT
+          if [ -n "$AWS_ROLE" ] || [ -n "$AWS_KEY" ]; then
+            echo "has_auth=true" >> $GITHUB_OUTPUT
           else
-            echo "has_creds=false" >> $GITHUB_OUTPUT
-            echo "::notice::AWS_ACCESS_KEY_ID not detected in GitHub Secrets. Automated cloud deployment skipped safely."
+            echo "has_auth=false" >> $GITHUB_OUTPUT
+            echo "::notice::Neither AWS_ROLE_TO_ASSUME (OIDC) nor AWS_ACCESS_KEY_ID detected in GitHub Secrets. AWS deployment skipped safely to guarantee $0 charges."
           fi
 
-      - name: Configure AWS Credentials
-        if: steps.check-aws.outputs.has_creds == 'true'
+      - name: Configure AWS Credentials via GitHub OIDC (Recommended)
+        if: steps.check-aws.outputs.has_auth == 'true' && secrets.AWS_ROLE_TO_ASSUME != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Configure AWS Credentials via Access Keys (Fallback)
+        if: steps.check-aws.outputs.has_auth == 'true' && secrets.AWS_ROLE_TO_ASSUME == ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -79,17 +126,17 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
       - name: Set up AWS SAM CLI
-        if: steps.check-aws.outputs.has_creds == 'true'
+        if: steps.check-aws.outputs.has_auth == 'true'
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
 
       - name: Build SAM Application
-        if: steps.check-aws.outputs.has_creds == 'true'
+        if: steps.check-aws.outputs.has_auth == 'true'
         run: sam build
 
       - name: Deploy SAM Stack to AWS
-        if: steps.check-aws.outputs.has_creds == 'true'
+        if: steps.check-aws.outputs.has_auth == 'true'
         run: |
           sam deploy \
             --stack-name cloud-resume-portfolio \
@@ -98,15 +145,12 @@ jobs:
             --no-fail-on-empty-changeset \
             --region ${{ secrets.AWS_REGION || 'us-east-1' }}
 
-      - name: Build Frontend & Deploy Static Assets
-        if: steps.check-aws.outputs.has_creds == 'true'
+      - name: Sync Frontend to S3 and CloudFront (If Configured)
+        if: steps.check-aws.outputs.has_auth == 'true' && secrets.FRONTEND_BUCKET != ''
         run: |
           npm --prefix frontend ci
           npm --prefix frontend run build
-          # S3 sync if FRONTEND_BUCKET secret exists
-          if [ -n "${{ secrets.FRONTEND_BUCKET }}" ]; then
-            aws s3 sync frontend/dist s3://${{ secrets.FRONTEND_BUCKET }} --delete
-            if [ -n "${{ secrets.CLOUDFRONT_DIST_ID }}" ]; then
-              aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DIST_ID }} --paths "/*"
-            fi
+          aws s3 sync frontend/dist s3://${{ secrets.FRONTEND_BUCKET }} --delete
+          if [ -n "${{ secrets.CLOUDFRONT_DIST_ID }}" ]; then
+            aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DIST_ID }} --paths "/*"
           fi
