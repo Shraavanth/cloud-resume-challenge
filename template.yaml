@@ -5,7 +5,7 @@ Description: Cloud Resume Challenge - Full Serverless Portfolio Architecture
 Globals:
   Function:
     Timeout: 10
-    Runtime: nodejs20.x
+    Runtime: nodejs22.x
     CodeUri: .
     Environment:
       Variables:
