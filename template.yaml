@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Cloud Portfolio Management System - Backend Serverless Stack
+Description: Cloud Resume Challenge - Full Serverless Portfolio Architecture
 
 Globals:
   Function:
@@ -11,11 +11,13 @@ Globals:
       Variables:
         PROJECTS_TABLE: !Ref ProjectsTable
         SKILLS_TABLE: !Ref SkillsTable
+        CERTIFICATIONS_TABLE: !Ref CertificationsTable
         CERTS_TABLE: !Ref CertificationsTable
         CONTACTS_TABLE: !Ref ContactsTable
         RATINGS_TABLE: !Ref RatingsTable
         ANALYTICS_TABLE: !Ref AnalyticsTable
         RESUME_BUCKET: !Ref ResumeBucket
+        RESUME_BUCKET_NAME: !Ref ResumeBucket
         VERIFIED_SENDER_EMAIL: "admin@example.com" # Replace with your SES verified email
 
 Resources:
@@ -54,6 +56,13 @@ Resources:
         - email
       AutoVerifiedAttributes:
         - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: true
 
   AdminUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
@@ -65,6 +74,22 @@ Resources:
         - ALLOW_USER_SRP_AUTH
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
+
+  AdminUserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: Admin
+      UserPoolId: !Ref AdminUserPool
+      Description: Portfolio Administrators with content editing rights
+      Precedence: 1
+
+  StudentUserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: Student
+      UserPoolId: !Ref AdminUserPool
+      Description: Registered students with standard access
+      Precedence: 10
 
   # ==========================================
   # DYNAMODB TABLES
@@ -148,6 +173,21 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "portfolio-resumes-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+              - PUT
+            AllowedOrigins:
+              - "*"
+            MaxAge: 3600
 
   # ==========================================
   # LAMBDA FUNCTIONS
@@ -166,12 +206,26 @@ Resources:
             ApiId: !Ref PortfolioApi
             Path: /projects
             Method: GET
+        GetProject:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /projects/{id}
+            Method: GET
         CreateProject:
           Type: HttpApi
           Properties:
             ApiId: !Ref PortfolioApi
             Path: /projects
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        UpdateProject:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /projects/{id}
+            Method: PUT
             Auth:
               Authorizer: CognitoAuthorizer
         DeleteProject:
@@ -197,12 +251,26 @@ Resources:
             ApiId: !Ref PortfolioApi
             Path: /skills
             Method: GET
+        GetSkill:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /skills/{id}
+            Method: GET
         CreateSkill:
           Type: HttpApi
           Properties:
             ApiId: !Ref PortfolioApi
             Path: /skills
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        UpdateSkill:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /skills/{id}
+            Method: PUT
             Auth:
               Authorizer: CognitoAuthorizer
         DeleteSkill:
@@ -228,12 +296,26 @@ Resources:
             ApiId: !Ref PortfolioApi
             Path: /certifications
             Method: GET
+        GetCert:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /certifications/{id}
+            Method: GET
         CreateCert:
           Type: HttpApi
           Properties:
             ApiId: !Ref PortfolioApi
             Path: /certifications
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        UpdateCert:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /certifications/{id}
+            Method: PUT
             Auth:
               Authorizer: CognitoAuthorizer
         DeleteCert:
@@ -306,6 +388,14 @@ Resources:
             ApiId: !Ref PortfolioApi
             Path: /contact
             Method: POST
+        GetContacts:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PortfolioApi
+            Path: /contact
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
 
   AnalyticsFunction:
     Type: AWS::Serverless::Function
@@ -347,7 +437,7 @@ Resources:
 # ==========================================
 Outputs:
   ApiBaseUrl:
-    Description: Base URL for API Gateway (Hand over to Member 1)
+    Description: Base URL for API Gateway
     Value: !Sub "https://${PortfolioApi}.execute-api.${AWS::Region}.amazonaws.com"
   UserPoolId:
     Description: Cognito User Pool ID
@@ -355,3 +445,6 @@ Outputs:
   UserPoolClientId:
     Description: Cognito App Client ID
     Value: !Ref AdminUserPoolClient
+  ResumeBucketName:
+    Description: S3 Bucket for Resume storage
+    Value: !Ref ResumeBucket

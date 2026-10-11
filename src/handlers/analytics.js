@@ -7,8 +7,8 @@ const ANALYTICS_TABLE = process.env.ANALYTICS_TABLE || "VisitorAnalytics";
 const RATINGS_TABLE = process.env.RATINGS_TABLE || "PortfolioRatings";
 
 export const handler = async (event) => {
-  const method = event.httpMethod;
-  const path = event.path || "";
+  const method = event.httpMethod || event.requestContext?.http?.method || "GET";
+  const path = event.rawPath || event.path || event.requestContext?.http?.path || "";
 
   try {
     // ---------------- VISITOR ANALYTICS ----------------
@@ -33,7 +33,14 @@ export const handler = async (event) => {
             ReturnValues: "UPDATED_NEW",
           })
         );
-        return sendResponse(200, result.Attributes);
+
+        const total = result.Attributes?.totalVisits || 1;
+        return sendResponse(200, {
+          totalVisits: total,
+          total: total, // Compatibility with frontend res.data.total
+          lastVisit: result.Attributes?.lastVisit,
+          lastBrowser: result.Attributes?.lastBrowser,
+        });
       }
 
       // GET: Retrieve visitor stats without incrementing
@@ -44,22 +51,39 @@ export const handler = async (event) => {
             Key: { siteId: "main" },
           })
         );
-        return sendResponse(200, result.Item || { totalVisits: 0 });
+        const total = result.Item?.totalVisits || 0;
+        return sendResponse(200, {
+          totalVisits: total,
+          total: total, // Compatibility with frontend res.data.total
+          ...result.Item,
+        });
       }
+
+      return sendResponse(405, { message: "Method Not Allowed" });
     }
 
     // ---------------- PORTFOLIO RATINGS ----------------
     if (path.includes("rating")) {
       // POST: Submit a new rating (1-5)
       if (method === "POST") {
-        const { score } = JSON.parse(event.body || "{}");
-        if (!score || score < 1 || score > 5) {
+        let body;
+        try {
+          body = JSON.parse(event.body || "{}");
+        } catch {
+          return sendResponse(400, { message: "Invalid JSON in request body" });
+        }
+
+        // Support both "score" and "rating" property names (frontend sends "rating")
+        const rawScore = body.score !== undefined ? body.score : body.rating;
+        const score = Number(rawScore);
+
+        if (isNaN(score) || score < 1 || score > 5) {
           return sendResponse(400, { message: "Rating score must be between 1 and 5" });
         }
 
         const ratingItem = {
           ratingId: uuidv4(),
-          score: Number(score),
+          score,
           createdAt: new Date().toISOString(),
         };
 
@@ -70,7 +94,10 @@ export const handler = async (event) => {
           })
         );
 
-        return sendResponse(201, { message: "Rating submitted successfully" });
+        return sendResponse(201, {
+          message: "Rating submitted successfully",
+          rating: ratingItem,
+        });
       }
 
       // GET: Calculate and return average rating & total reviews
@@ -86,14 +113,24 @@ export const handler = async (event) => {
         const totalRatings = items.length;
 
         if (totalRatings === 0) {
-          return sendResponse(200, { averageRating: 0, totalRatings: 0 });
+          return sendResponse(200, {
+            averageRating: 0,
+            avg: 0, // Compatibility with frontend res.data.avg
+            totalRatings: 0,
+          });
         }
 
-        const sum = items.reduce((acc, curr) => acc + (curr.score || 0), 0);
+        const sum = items.reduce((acc, curr) => acc + (Number(curr.score) || 0), 0);
         const averageRating = Number((sum / totalRatings).toFixed(1));
 
-        return sendResponse(200, { averageRating, totalRatings });
+        return sendResponse(200, {
+          averageRating,
+          avg: averageRating, // Compatibility with frontend res.data.avg
+          totalRatings,
+        });
       }
+
+      return sendResponse(405, { message: "Method Not Allowed" });
     }
 
     return sendResponse(404, { message: "Endpoint not found" });
