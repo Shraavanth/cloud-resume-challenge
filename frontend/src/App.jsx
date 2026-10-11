@@ -1,9 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
+import About from "./pages/About";
 import Projects from "./pages/Projects";
 import Contact from "./pages/Contact";
-import About from "./pages/About";
 /** Admin Pages */
 import AdminLogin from "./admin/pages/AdminLogin";
 import Dashboard from "./admin/pages/Dashboard";
@@ -14,7 +14,7 @@ import AdminLayout from "./admin/components/AdminLayout";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="scb-layout">
         <Navbar />
         <main className="scb-page">
@@ -51,6 +51,6 @@ export default function App() {
           </Routes>
         </main>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloud Portfolio</title>
+    <script>
+      // Single Page Application (SPA) redirect for GitHub Pages
+      // Redirects any direct subpath access back to the root index with hash
+      var path = window.location.pathname;
+      var repo = '/cloud-resume-challenge';
+      if (path.startsWith(repo)) {
+        var subpath = path.slice(repo.length);
+        if (subpath && subpath !== '/' && subpath !== '/index.html') {
+          window.location.replace(repo + '/#' + subpath + window.location.search);
+        } else {
+          window.location.replace(repo + '/');
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

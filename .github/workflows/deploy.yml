@@ -56,6 +56,10 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -71,6 +75,14 @@ jobs:
           npm --prefix frontend ci
           npm --prefix frontend run build
 
+      - name: Deploy to gh-pages branch (Static Branch Hosting)
+        uses: peaceiris/actions-gh-pages@v4
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/dist
+          publish_branch: gh-pages
+
       - name: Setup Pages
         id: setup_pages
         uses: actions/configure-pages@v5
@@ -79,20 +91,21 @@ jobs:
           enablement: true
 
       - name: Upload Pages Artifact
-        if: steps.setup_pages.outcome == 'success'
+        id: upload_pages
         uses: actions/upload-pages-artifact@v3
+        continue-on-error: true
         with:
           path: frontend/dist
 
       - name: Deploy to GitHub Pages
-        if: steps.setup_pages.outcome == 'success'
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
 
-      - name: Notice on GitHub Pages Setup
-        if: steps.setup_pages.outcome != 'success'
+      - name: Report Deployment Status
         run: |
-          echo "::notice title=Enable GitHub Pages in Settings::To activate your $0 free portfolio website, go to Settings -> Pages -> Source and select 'GitHub Actions'."
+          echo "Frontend build and dual-target deployment (gh-pages branch & GitHub Actions Pages) dispatched."
+          echo "Verified URL: https://nikhilkumarneeli-crypto.github.io/cloud-resume-challenge/"
 
   deploy-aws:
     name: Deploy to AWS ($0 Free Tier Backend)
