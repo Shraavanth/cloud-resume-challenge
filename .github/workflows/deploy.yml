@@ -53,9 +53,6 @@ jobs:
     name: Deploy Frontend to GitHub Pages ($0 Budget Verified)
     needs: test-and-build
     if: github.ref == 'refs/heads/development/nikhil' || github.ref == 'refs/heads/main'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
