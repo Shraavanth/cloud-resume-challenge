@@ -56,10 +56,6 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -75,20 +71,10 @@ jobs:
           npm --prefix frontend ci
           npm --prefix frontend run build
 
-      - name: Deploy to gh-pages branch (Static Branch Hosting)
-        uses: peaceiris/actions-gh-pages@v4
-        continue-on-error: true
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend/dist
-          publish_branch: gh-pages
-
       - name: Setup Pages
         id: setup_pages
         uses: actions/configure-pages@v5
         continue-on-error: true
-        with:
-          enablement: true
 
       - name: Upload Pages Artifact
         id: upload_pages
@@ -104,8 +90,8 @@ jobs:
 
       - name: Report Deployment Status
         run: |
-          echo "Frontend build and dual-target deployment (gh-pages branch & GitHub Actions Pages) dispatched."
-          echo "Verified URL: https://nikhilkumarneeli-crypto.github.io/cloud-resume-challenge/"
+          echo "Frontend build and GitHub Pages deployment dispatched."
+          echo "Expected URL: https://nikhilkumarneeli-crypto.github.io/cloud-resume-challenge/"
 
   deploy-aws:
     name: Deploy to AWS ($0 Free Tier Backend)
