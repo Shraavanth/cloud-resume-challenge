@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cloud Portfolio</title>
     <script>
+      if (typeof global === "undefined") {
+        window.global = window;
+      }
       // Single Page Application (SPA) redirect for GitHub Pages
       // Redirects any direct subpath access back to the root index with hash
       var path = window.location.pathname;
