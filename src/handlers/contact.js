@@ -33,7 +33,6 @@ export const handler = async (event) => {
       console.error("Contacts Fetch Error:", error);
       return sendResponse(500, {
         message: "Internal server error fetching contacts",
-        error: error.message,
       });
     }
   }
@@ -112,7 +111,6 @@ export const handler = async (event) => {
       console.error("Contact Submission Error:", error);
       return sendResponse(500, {
         message: "Internal server error saving contact message",
-        error: error.message,
       });
     }
   }

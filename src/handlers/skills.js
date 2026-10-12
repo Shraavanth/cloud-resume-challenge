@@ -160,7 +160,6 @@ export const handler = async (event) => {
     console.error("Skills API Error:", error);
     return sendResponse(500, {
       message: "Internal server error",
-      error: error.message,
     });
   }
 };

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getSkills } from "../services/api";
 import SkillCard from "../components/SkillCard";
 
@@ -34,8 +35,8 @@ export default function Home() {
           From API development and serverless workflows to polished frontend experiences, I help ideas become production-ready products.
         </p>
         <div className="scb-nav-links">
-          <a href="/projects" className="scb-nav-link">View Projects</a>
-          <a href="/contact" className="scb-nav-link">Get in Touch</a>
+          <Link to="/projects" className="scb-nav-link">View Projects</Link>
+          <Link to="/contact" className="scb-nav-link">Get in Touch</Link>
         </div>
       </section>
 

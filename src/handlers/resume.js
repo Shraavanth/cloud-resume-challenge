@@ -55,7 +55,6 @@ export const handler = async (event) => {
     console.error("Resume URL Error:", error);
     return sendResponse(500, {
       message: "Failed to generate resume URL",
-      error: error.message,
     });
   }
 };

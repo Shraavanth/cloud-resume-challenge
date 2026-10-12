@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import cloudIcon from "../assets/icons8-cloud-deve-50.png";
-import cloudIcon2 from "../assets/icons8-cloud-dev-50.png";
+import VisitorCounter from "./VisitorCounter";
 
 export default function Navbar() {
   return (
@@ -19,6 +19,7 @@ export default function Navbar() {
         <Link to="/about" className="scb-nav-link">About</Link>
         <Link to="/projects" className="scb-nav-link">Projects</Link>
         <Link to="/contact" className="scb-nav-link">Contact</Link>
+        <VisitorCounter />
       </div>
     </nav>
   );

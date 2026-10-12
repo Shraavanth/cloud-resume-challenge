@@ -124,7 +124,6 @@ export const handler = async (event) => {
     console.error("Stats API Error:", error);
     return sendResponse(500, {
       message: "Internal server error fetching statistics",
-      error: error.message,
     });
   }
 };

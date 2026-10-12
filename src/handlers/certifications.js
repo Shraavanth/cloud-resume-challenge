@@ -130,6 +130,6 @@ export const handler = async (event) => {
     return sendResponse(405, { message: "Method Not Allowed" });
   } catch (error) {
     console.error("Certifications API Error:", error);
-    return sendResponse(500, { message: "Internal server error", error: error.message });
+    return sendResponse(500, { message: "Internal server error" });
   }
 };

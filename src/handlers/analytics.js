@@ -136,6 +136,6 @@ export const handler = async (event) => {
     return sendResponse(404, { message: "Endpoint not found" });
   } catch (error) {
     console.error("Analytics Error:", error);
-    return sendResponse(500, { message: "Internal server error", error: error.message });
+    return sendResponse(500, { message: "Internal server error" });
   }
 };
